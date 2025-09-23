@@ -67,6 +67,7 @@ void exibir_tela_fim_jogo(const Jogo* jogo);
 const char* nome_item(TipoItem tipo);
 void adicionar_item(Jogo* jogo, TipoItem tipo, int quantidade, int dano_extra);
 void usar_item(Jogo* jogo);
+void display_art(const char* art_name);
 
 // --- Funcoes de UI e Logica do Jogo ---
 
@@ -205,6 +206,7 @@ void processar_acao(Jogo* jogo, int acao) {
         case 1: // Explorar
             printf("\nVoce gasta energia explorando a area...\n");
             jogo->jogador.energia -= 15;
+            display_art("forest");
             if (rand() % 100 < 40) { // 40% de chance de encontrar algo
                 int tipo_encontrado = rand() % 10;
                 if (tipo_encontrado < 4) { // 40%
@@ -227,6 +229,7 @@ void processar_acao(Jogo* jogo, int acao) {
                 } while (!jogo->tributos_npcs[tributo_encontrado_index].vivo);
                 Tributo* inimigo = &jogo->tributos_npcs[tributo_encontrado_index];
                 printf("\nVoce se depara com %s do Distrito %s!\n", inimigo->nome, inimigo->distrito);
+                display_art("tribute_encounter");
                 int escolha_combate;
                 printf("1. Atacar\n2. Tentar alianca\n3. Fugir\nSua escolha: ");
                 if(scanf("%d", &escolha_combate) != 1) {
@@ -325,6 +328,9 @@ void acao_npc(Jogo* jogo) {
 }
 
 void combate(Jogo* jogo, Tributo* inimigo) {
+    printf("\n");
+    display_art("combat");
+
     while (jogo->jogador.vivo && inimigo->vivo) {
         printf("\n--- COMBATE! ---\n");
         printf("Sua vida: %d | Vida de %s: %d\n", jogo->jogador.saude, inimigo->nome, inimigo->saude);
@@ -390,6 +396,7 @@ void evento_capital(Jogo* jogo) {
 void exibir_tela_fim_jogo(const Jogo* jogo) {
     system("cls || clear");
     if (jogo->jogador.vivo) {
+        display_art("victory");
         printf("\n==========================================\n");
         printf("||          VITORIA GLORIOSA!           ||\n");
         printf("==========================================\n");
@@ -398,6 +405,7 @@ void exibir_tela_fim_jogo(const Jogo* jogo) {
         printf("  Seu nome sera eternizado em Panem!\n");
         printf("==========================================\n");
     } else {
+        display_art("defeat");
         printf("\n==========================================\n");
         printf("||            FIM DE JOGO               ||\n");
         printf("==========================================\n");
@@ -416,6 +424,7 @@ void exibir_tela_fim_jogo(const Jogo* jogo) {
         }
     }
     printf("\n\n(Pressione Enter para voltar ao Menu Principal)\n");
+    getchar();
     limpar_buffer();
 }
 
@@ -488,6 +497,51 @@ void usar_item(Jogo* jogo) {
     }
 }
 
+void display_art(const char* art_name) {
+    printf("\n");
+    if (strcmp(art_name, "cornucopia") == 0) {
+        printf("        /\\                                    /\\        \n");
+        printf("       /  \\_________________________________ /  \\       \n");
+        printf("      /                                         \\      \n");
+        printf("      \\  (  A Cornucopia esta aberta!  )           /      \n");
+        printf("       \\ /_______________________________________\\ /       \n");
+        printf("        \\/                                        \\/        \n");
+    } else if (strcmp(art_name, "forest") == 0) {
+        printf("       /\\             /\\             /\\       \n");
+        printf("      /  \\           /  \\           /  \\      \n");
+        printf("     /    \\         /    \\         /    \\     \n");
+        printf("    /______\\       /______\\       /______\\    \n");
+        printf("       ||             ||             ||        \n");
+        printf("       ||             ||             ||        \n");
+    } else if (strcmp(art_name, "tribute_encounter") == 0) {
+        printf("          /\\                               /\\         \n");
+        printf("        /  \\                             /  \\        \n");
+        printf("       /    \\      ! CONFRONTO !       /    \\       \n");
+        printf("      /______\\                         /______\\      \n");
+    } else if (strcmp(art_name, "combat") == 0) {
+        printf("        __--_              _--__        \n");
+        printf("       /\\_-_/              \\_-_/\\       \n");
+        printf("      / /                   \\ \\       \n");
+        printf("     /  (      COMBATE      )  \\      \n");
+        printf("    /   \\___________________/   \\     \n");
+    } else if (strcmp(art_name, "victory") == 0) {
+        printf("       ____  _                           _  _   _ \n");
+        printf("      / ___|| |_ _   _ _ __ ___  _ __   | || \\ | |\n");
+        printf("     | |  _ | __| | | | '__/ _ \\| '_ \\  | ||  \\| |\n");
+        printf("     | |_| || |_| |_| | | |  __/| | | | | || |\\  |\n");
+        printf("      \\____| \\__|\\__,_|_|  \\___|_| |_| |_||_| \\_|\n");
+        printf("                                              \n");
+    } else if (strcmp(art_name, "defeat") == 0) {
+        printf("         _                       _   \n");
+        printf("        | |__   ___   __ _  _ __| |_ \n");
+        printf("        | '_ \\ / _ \\ / _` || '__| __|\n");
+        printf("        | |_) |  __/| (_| || |  | |_ \n");
+        printf("        |_.__/ \\___| \\__,_||_|   \\__|\n");
+        printf("                                    \n");
+    }
+    printf("\n");
+}
+
 
 // --- Loop Principal e Funcao Main ---
 
@@ -504,18 +558,10 @@ void loop_principal(Jogo* jogo) {
         if (jogo->jogador.fome >= 100) {
             printf("\n(Atencao: A fome esta afetando sua saude.)\n");
             jogo->jogador.saude -= 5;
-            if (jogo->jogador.fome == 100) {
-                jogo->jogador.vivo = false;
-                continue;
-            }
         }
         if (jogo->jogador.sede >= 100) {
             printf("\n(Atencao: A sede esta afetando sua saude.)\n");
             jogo->jogador.saude -= 10;
-            if (jogo->jogador.sede == 100) {
-                jogo->jogador.vivo = false;
-                continue;
-            }
         }
 
         if (jogo->jogador.saude <= 0) {
@@ -569,6 +615,7 @@ int main() {
 
         switch (escolha) {
             case 1:
+                display_art("cornucopia");
                 criar_novo_jogo(&jogo);
                 loop_principal(&jogo);
                 break;
