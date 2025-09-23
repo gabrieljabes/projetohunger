@@ -50,6 +50,7 @@ typedef struct {
 
 // --- Prototipos das Funcoes ---
 void limpar_buffer();
+void esperar_tecla();
 void exibir_tela_titulo();
 void exibir_menu_principal();
 void criar_novo_jogo(Jogo* jogo);
@@ -70,7 +71,13 @@ void usar_item(Jogo* jogo);
 // --- Funcoes de UI e Logica do Jogo ---
 
 void limpar_buffer() {
-    while (getchar() != '\n');
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+void esperar_tecla() {
+    fflush(stdin);
+    getchar();
 }
 
 void exibir_tela_titulo() {
@@ -84,9 +91,8 @@ void exibir_tela_titulo() {
     printf("  |_|  |_|_|\\___\\___/|_| |_|\\___|_|\\__\\__|_| |_| |_|          \n");
     printf("                                                                 \n");
     printf("=================================================================\n");
-    printf("\n                 (Pressione Enter para continuar)\n");
-    getchar();
-    limpar_buffer();
+    printf("\n                 (Pressione qualquer tecla para continuar)\n");
+    esperar_tecla();
 }
 
 void exibir_menu_principal() {
@@ -223,7 +229,11 @@ void processar_acao(Jogo* jogo, int acao) {
                 printf("\nVoce se depara com %s do Distrito %s!\n", inimigo->nome, inimigo->distrito);
                 int escolha_combate;
                 printf("1. Atacar\n2. Tentar alianca\n3. Fugir\nSua escolha: ");
-                scanf("%d", &escolha_combate);
+                if(scanf("%d", &escolha_combate) != 1) {
+                    printf("Entrada invalida. Acao cancelada.\n");
+                    limpar_buffer();
+                    break;
+                }
                 limpar_buffer();
                 if (escolha_combate == 1) {
                     combate(jogo, inimigo);
@@ -233,13 +243,15 @@ void processar_acao(Jogo* jogo, int acao) {
                     } else {
                         printf("%s nao confia em voce. A tensao aumenta e voces se separam.\n", inimigo->nome);
                     }
-                } else {
+                } else if (escolha_combate == 3) {
                     if (rand() % 100 < jogo->jogador.agilidade * 7) {
                         printf("Voce conseguiu fugir com sucesso!\n");
                     } else {
                         printf("Voce falha em fugir e sofre um ataque de %s!\n", inimigo->nome);
                         jogo->jogador.saude -= 10;
                     }
+                } else {
+                    printf("Escolha invalida. Acao cancelada.\n");
                 }
             }
             break;
@@ -404,7 +416,6 @@ void exibir_tela_fim_jogo(const Jogo* jogo) {
         }
     }
     printf("\n\n(Pressione Enter para voltar ao Menu Principal)\n");
-    getchar();
     limpar_buffer();
 }
 
@@ -442,7 +453,11 @@ void usar_item(Jogo* jogo) {
     }
     printf("Escolha o numero do item que deseja usar (0 para cancelar): ");
     int escolha;
-    scanf("%d", &escolha);
+    if(scanf("%d", &escolha) != 1) {
+        printf("Entrada invalida. Acao cancelada.\n");
+        limpar_buffer();
+        return;
+    }
     limpar_buffer();
     escolha--;
 
@@ -489,10 +504,18 @@ void loop_principal(Jogo* jogo) {
         if (jogo->jogador.fome >= 100) {
             printf("\n(Atencao: A fome esta afetando sua saude.)\n");
             jogo->jogador.saude -= 5;
+            if (jogo->jogador.fome == 100) {
+                jogo->jogador.vivo = false;
+                continue;
+            }
         }
         if (jogo->jogador.sede >= 100) {
             printf("\n(Atencao: A sede esta afetando sua saude.)\n");
             jogo->jogador.saude -= 10;
+            if (jogo->jogador.sede == 100) {
+                jogo->jogador.vivo = false;
+                continue;
+            }
         }
 
         if (jogo->jogador.saude <= 0) {
@@ -506,7 +529,11 @@ void loop_principal(Jogo* jogo) {
         printf("3. Descansar (recupera energia)\n");
         printf("4. Usar Item (do inventario)\n");
         printf("Sua escolha: ");
-        scanf("%d", &escolha);
+        if(scanf("%d", &escolha) != 1) {
+            printf("Entrada invalida. Tente novamente.\n");
+            limpar_buffer();
+            continue;
+        }
         limpar_buffer();
 
         processar_acao(jogo, escolha);
@@ -533,7 +560,11 @@ int main() {
     while (true) {
         exibir_menu_principal();
         printf("Escolha uma opcao: ");
-        scanf("%d", &escolha);
+        if(scanf("%d", &escolha) != 1) {
+            printf("Opcao invalida. Tente novamente.\n");
+            limpar_buffer();
+            continue;
+        }
         limpar_buffer();
 
         switch (escolha) {
