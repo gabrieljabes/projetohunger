@@ -58,7 +58,7 @@ bool salvar_jogo(const Jogo* jogo);
 bool carregar_jogo(Jogo* jogo);
 void exibir_status(const Jogo* jogo);
 void loop_principal(Jogo* jogo);
-void processar_acao(Jogo* jogo, int acao);
+void processar_acao(Jogo* jogo, char decisao);
 void acao_npc(Jogo* jogo);
 void combate(Jogo* jogo, Tributo* inimigo);
 int calcular_dano_total(Tributo* jogador, Jogo* jogo);
@@ -122,8 +122,8 @@ void criar_novo_jogo(Jogo* jogo) {
     strcpy(jogador_base.nome, nome);
     strcpy(jogador_base.distrito, distrito);
     jogador_base.saude = 100;
-    jogador_base.fome = 0;
-    jogador_base.sede = 0;
+    jogador_base.fome = 100; // Comeca com fome total
+    jogador_base.sede = 100; // Comeca com sede total
     jogador_base.energia = 100;
     jogador_base.forca = rand() % 10 + 1;
     jogador_base.agilidade = rand() % 10 + 1;
@@ -196,14 +196,16 @@ void exibir_status(const Jogo* jogo) {
     printf("------------------------------------------\n");
 }
 
-void processar_acao(Jogo* jogo, int acao) {
-    if (jogo->jogador.energia < 10 && acao != 3) {
+void processar_acao(Jogo* jogo, char decisao) {
+    if (jogo->jogador.energia < 10 && decisao != '3') {
         printf("Voce esta exausto demais para essa acao. Descanse!\n");
-        return;
+        do{
+            decisao = getchar();
+        }while(decisao != '3');
     }
 
-    switch (acao) {
-        case 1: // Explorar
+    switch (decisao) {
+        case '1': // Explorar
             printf("\nVoce gasta energia explorando a area...\n");
             jogo->jogador.energia -= 15;
             display_art("forest");
@@ -259,7 +261,7 @@ void processar_acao(Jogo* jogo, int acao) {
             }
             break;
 
-        case 2: // Cacar
+        case '2': // Cacar
             printf("\nVoce gasta energia tentando cacar...\n");
             jogo->jogador.energia -= 20;
             if (rand() % 100 < jogo->jogador.agilidade * 5) {
@@ -269,13 +271,13 @@ void processar_acao(Jogo* jogo, int acao) {
             }
             break;
 
-        case 3: // Descansar
+        case '3': // Descansar
             printf("\nVoce descansa e recupera suas energias.\n");
             jogo->jogador.energia += 40;
             if (jogo->jogador.energia > 100) jogo->jogador.energia = 100;
             break;
 
-        case 4: // Usar item
+        case '4': // Usar item
             usar_item(jogo);
             break;
 
@@ -309,19 +311,22 @@ void acao_npc(Jogo* jogo) {
                 }
             } else if (acao == 1) { // Procura
                 printf("- %s esta procurando por suprimentos.\n", npc->nome);
-                npc->fome -= 10;
-                npc->sede -= 10;
+                npc->fome += 10;
+                npc->sede += 10;
             } else { // Descansa
                 printf("- %s esta descansando.\n", npc->nome);
                 npc->energia += 20;
             }
 
-            npc->fome += 5;
-            npc->sede += 8;
-            if (npc->fome >= 100 || npc->sede >= 100) {
+            if (npc->fome >= 100) {
                 npc->vivo = false;
                 jogo->tributosVivos--;
-                printf(">>> %s morreu de fome e sede.\n", npc->nome);
+                printf(">>> %s morreu de fome.\n", npc->nome);
+            }
+            if (npc->sede >= 100) {
+                npc->vivo = false;
+                jogo->tributosVivos--;
+                printf(">>> %s morreu de sede.\n", npc->nome);
             }
         }
     }
@@ -475,14 +480,17 @@ void usar_item(Jogo* jogo) {
         switch(item->tipo) {
             case ITEM_COMIDA:
                 jogo->jogador.fome -= 50;
+                if(jogo->jogador.fome < 0) jogo->jogador.fome = 0;
                 printf("Voce comeu e a fome diminuiu.\n");
                 break;
             case ITEM_AGUA:
                 jogo->jogador.sede -= 50;
+                if(jogo->jogador.sede < 0) jogo->jogador.sede = 0;
                 printf("Voce bebeu e a sede diminuiu.\n");
                 break;
             case ITEM_MEDICINA:
                 jogo->jogador.saude += 30;
+                if(jogo->jogador.saude > 100) jogo->jogador.saude = 100;
                 printf("Voce usou o kit medico e recuperou vida.\n");
                 break;
             default:
@@ -546,14 +554,16 @@ void display_art(const char* art_name) {
 // --- Loop Principal e Funcao Main ---
 
 void loop_principal(Jogo* jogo) {
-    int escolha;
+    char decisao;
     while (jogo->jogador.vivo && jogo->tributosVivos > 1) {
         exibir_status(jogo);
         evento_capital(jogo);
 
         // Atualizacao de atributos diarios
         jogo->jogador.fome += 5;
+        if(jogo->jogador.fome > 100) jogo->jogador.fome = 100;
         jogo->jogador.sede += 8;
+        if(jogo->jogador.sede > 100) jogo->jogador.sede = 100;
         
         if (jogo->jogador.fome >= 100) {
             printf("\n(Atencao: A fome esta afetando sua saude.)\n");
@@ -575,14 +585,13 @@ void loop_principal(Jogo* jogo) {
         printf("3. Descansar (recupera energia)\n");
         printf("4. Usar Item (do inventario)\n");
         printf("Sua escolha: ");
-        if(scanf("%d", &escolha) != 1) {
-            printf("Entrada invalida. Tente novamente.\n");
-            limpar_buffer();
-            continue;
-        }
+        
+        do{
+            decisao = getchar();
+        } while(decisao != '1' && decisao != '2' && decisao != '3' && decisao != '4');
         limpar_buffer();
-
-        processar_acao(jogo, escolha);
+        
+        processar_acao(jogo, decisao);
         
         acao_npc(jogo);
 
@@ -598,7 +607,7 @@ void loop_principal(Jogo* jogo) {
 
 int main() {
     srand(time(NULL));
-    int escolha;
+    char escolha;
     Jogo jogo;
 
     exibir_tela_titulo();
@@ -606,25 +615,24 @@ int main() {
     while (true) {
         exibir_menu_principal();
         printf("Escolha uma opcao: ");
-        if(scanf("%d", &escolha) != 1) {
-            printf("Opcao invalida. Tente novamente.\n");
-            limpar_buffer();
-            continue;
-        }
+        
+        do{
+            escolha = getchar();
+        } while(escolha != '1' && escolha != '2' && escolha != '3');
         limpar_buffer();
 
         switch (escolha) {
-            case 1:
+            case '1':
                 display_art("cornucopia");
                 criar_novo_jogo(&jogo);
                 loop_principal(&jogo);
                 break;
-            case 2:
+            case '2':
                 if (carregar_jogo(&jogo)) {
                     loop_principal(&jogo);
                 }
                 break;
-            case 3:
+            case '3':
                 printf("Obrigado por jogar!\n");
                 return 0;
             default:
