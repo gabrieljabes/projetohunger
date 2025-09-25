@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -22,6 +23,7 @@ void esperar_tecla();
     #include "ui.h"
 
     int main() {
+        setlocale(LC_ALL, "Portuguese");
         srand(time(NULL));
         char escolha;
         Jogo jogo;

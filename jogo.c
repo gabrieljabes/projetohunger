@@ -4,18 +4,12 @@
 #include <time.h>
 #include "jogo.h"
 #include "ui.h"
+#include <locale.h>
 
 void pausa() {
 	printf("\nPressione ENTER para continuar...");
 	getchar();
 }
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "jogo.h"
-#include "ui.h"
 
 // Funções de lógica do jogo
 
@@ -219,29 +213,32 @@ void acao_npc(Jogo* jogo) {
 				Tributo* alvo = &jogo->tributos_npcs[alvo_index];
 				int dano = rand() % 10 + npc->forca;
 				alvo->saude -= dano;
-				printf("- %s ataca %s, causando %d de dano.\n", npc->nome, alvo->nome, dano);
 				if (alvo->saude <= 0) {
 					alvo->vivo = false;
 					jogo->tributosVivos--;
-					printf(">>> %s foi eliminado por %s!\n", alvo->nome, npc->nome);
+					printf(">>> %s foi eliminado por %s em combate!\n", alvo->nome, npc->nome);
+					pausa();
+					break;
 				}
 			} else if (acao == 1) {
-				printf("- %s esta procurando por suprimentos.\n", npc->nome);
 				npc->fome += 10;
 				npc->sede += 10;
 			} else {
-				printf("- %s esta descansando.\n", npc->nome);
 				npc->energia += 20;
 			}
 			if (npc->fome >= 100) {
 				npc->vivo = false;
 				jogo->tributosVivos--;
-				printf(">>> %s morreu de fome.\n", npc->nome);
+				printf(">>> %s morreu de fome (fome chegou a 100).\n", npc->nome);
+				pausa();
+				break;
 			}
 			if (npc->sede >= 100) {
 				npc->vivo = false;
 				jogo->tributosVivos--;
-				printf(">>> %s morreu de sede.\n", npc->nome);
+				printf(">>> %s morreu de sede (sede chegou a 100).\n", npc->nome);
+				pausa();
+				break;
 			}
 		}
 	}
@@ -422,7 +419,7 @@ void loop_principal(Jogo* jogo) {
 			}
 		}
 		printf("\nO que voce fara hoje?\n");
-		printf("1. Explorar (cacar, encontrar itens e inimigos)\n");
+		printf("1. Explorar (caçar, encontrar itens e inimigos)\n");
 		printf("2. Cacar (foca em obter comida)\n");
 		printf("3. Descansar (recupera energia)\n");
 		printf("4. Usar Item (do inventario)\n");
@@ -432,7 +429,7 @@ void loop_principal(Jogo* jogo) {
 		} while(decisao != '1' && decisao != '2' && decisao != '3' && decisao != '4');
 		limpar_buffer();
 		processar_acao(jogo, decisao);
-		acao_npc(jogo);
+	acao_npc(jogo);
 		if (jogo->jogador.saude <= 0) {
 			jogo->jogador.vivo = false;
 		}
