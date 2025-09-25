@@ -328,19 +328,33 @@ void usar_item(Jogo* jogo) {
 	for (int i = 0; i < 10; i++) {
 		if (jogo->inventario[i].tipo != ITEM_NENHUM) {
 			printf("%d. %s (%d)\n", i + 1, nome_item(jogo->inventario[i].tipo), jogo->inventario[i].quantidade);
+		} else {
+			printf("%d. [vazio]\n", i + 1);
 		}
 	}
-	printf("Escolha o numero do item que deseja usar (0 para cancelar): ");
-	int escolha;
-	if(scanf("%d", &escolha) != 1) {
-		printf("Entrada invalida. Acao cancelada.\n");
+	int escolha = -1;
+	while (1) {
+		printf("Escolha o numero do item que deseja usar (0 para cancelar): ");
+		if(scanf("%d", &escolha) != 1) {
+			printf("Entrada invalida.\n");
+			limpar_buffer();
+			continue;
+		}
 		limpar_buffer();
-		return;
-	}
-	limpar_buffer();
-	escolha--;
-	if (escolha >= 0 && escolha < 10 && jogo->inventario[escolha].tipo != ITEM_NENHUM) {
-		Item* item = &jogo->inventario[escolha];
+		if (escolha == 0) {
+			printf("Acao cancelada.\n");
+			return;
+		}
+		if (escolha < 1 || escolha > 10) {
+			printf("Escolha invalida. Digite um numero de 1 a 10 ou 0 para cancelar.\n");
+			continue;
+		}
+		int idx = escolha - 1;
+		if (jogo->inventario[idx].tipo == ITEM_NENHUM) {
+			printf("Esse slot esta vazio. Escolha outro.\n");
+			continue;
+		}
+		Item* item = &jogo->inventario[idx];
 		switch(item->tipo) {
 			case ITEM_COMIDA:
 				jogo->jogador.fome -= 50;
@@ -364,8 +378,7 @@ void usar_item(Jogo* jogo) {
 		if (item->quantidade <= 0) {
 			item->tipo = ITEM_NENHUM;
 		}
-	} else {
-		printf("Escolha invalida.\n");
+		break;
 	}
 }
 
