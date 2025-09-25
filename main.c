@@ -1,9 +1,10 @@
+// Bibliotecas padrão
 #include <stdio.h>
-#include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <locale.h>
 
 // Definicoes
 #define NUM_TRIBUTOS 24
@@ -15,12 +16,9 @@
 
 void esperar_tecla();
 
-    #include <stdio.h>
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <time.h>
-    #include "jogo.h"
-    #include "ui.h"
+
+#include "jogo.h"
+#include "ui.h"
 
     int main() {
         setlocale(LC_ALL, "Portuguese");
