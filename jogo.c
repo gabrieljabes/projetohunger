@@ -57,8 +57,8 @@ void criar_novo_jogo(Jogo* jogo) {
 	strcpy(jogador_base.nome, nome);
 	strcpy(jogador_base.distrito, distrito);
 	jogador_base.saude = 100;
-	jogador_base.fome = 100;
-	jogador_base.sede = 100;
+	jogador_base.fome = 0;   // Começa sem fome
+	jogador_base.sede = 0;   // Começa sem sede
 	jogador_base.energia = 100;
 	jogador_base.forca = rand() % 10 + 1;
 	jogador_base.agilidade = rand() % 10 + 1;
@@ -390,24 +390,24 @@ void loop_principal(Jogo* jogo) {
 		if(jogo->jogador.fome > 100) jogo->jogador.fome = 100;
 		jogo->jogador.sede += 8;
 		if(jogo->jogador.sede > 100) jogo->jogador.sede = 100;
-        if (jogo->jogador.fome >= 100) {
-            printf("\n(Atencao: A fome esta afetando sua saude.)\n");
-            jogo->jogador.saude -= 5;
-            if (jogo->jogador.saude <= 0) {
-                jogo->jogador.vivo = false;
-                snprintf(jogo->causa_morte, sizeof(jogo->causa_morte), "Morreu de fome");
-                continue;
-            }
-        }
-        if (jogo->jogador.sede >= 100) {
-            printf("\n(Atencao: A sede esta afetando sua saude.)\n");
-            jogo->jogador.saude -= 10;
-            if (jogo->jogador.saude <= 0) {
-                jogo->jogador.vivo = false;
-                snprintf(jogo->causa_morte, sizeof(jogo->causa_morte), "Morreu de sede");
-                continue;
-            }
-        }
+		if (jogo->jogador.fome >= 100) {
+			printf("\n(Atencao: Você está com fome extrema! Sua saúde está sendo afetada.)\n");
+			jogo->jogador.saude -= 5;
+			if (jogo->jogador.saude <= 0) {
+				jogo->jogador.vivo = false;
+				snprintf(jogo->causa_morte, sizeof(jogo->causa_morte), "Morreu de fome");
+				continue;
+			}
+		}
+		if (jogo->jogador.sede >= 100) {
+			printf("\n(Atencao: Você está com sede extrema! Sua saúde está sendo afetada.)\n");
+			jogo->jogador.saude -= 10;
+			if (jogo->jogador.saude <= 0) {
+				jogo->jogador.vivo = false;
+				snprintf(jogo->causa_morte, sizeof(jogo->causa_morte), "Morreu de sede");
+				continue;
+			}
+		}
 		printf("\nO que voce fara hoje?\n");
 		printf("1. Explorar (cacar, encontrar itens e inimigos)\n");
 		printf("2. Cacar (foca em obter comida)\n");
