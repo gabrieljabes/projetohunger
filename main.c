@@ -21,7 +21,7 @@ void esperar_tecla();
 #include "ui.h"
 
     int main() {
-        setlocale(LC_ALL, "Portuguese");
+        setlocale(LC_ALL, "Portuguese_Brazil");
         srand(time(NULL));
         char escolha;
         Jogo jogo;
